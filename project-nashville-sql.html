@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nashville Housing SQL — Benard Mwinzi</title>
+<title>Nashville Housing SQL, Benard Mwinzi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -244,7 +244,7 @@ pre {
   <div class="sec fi">
     <div class="sec-tag">Why this matters</div>
     <h2 class="sec-title">Raw Data Is Never Analysis-Ready</h2>
-    <p class="sec-body">In real-world data pipelines, data cleaning is often the most critical — and most underestimated — phase. A single null field, inconsistent category label, or compound address column can silently corrupt every downstream analysis, dashboard, or model built on top of it. This project demonstrates professional-grade SQL data engineering by transforming a publicly available but genuinely messy real estate dataset into a clean, normalised, analysis-ready table — following the same four-phase approach used in production data environments.</p>
+    <p class="sec-body">In real-world data pipelines, data cleaning is often the most critical, and most underestimated, phase. A single null field, inconsistent category label, or compound address column can silently corrupt every downstream analysis, dashboard, or model built on top of it. This project demonstrates professional-grade SQL data engineering by transforming a publicly available but genuinely messy real estate dataset into a clean, normalised, analysis-ready table, following the same four-phase approach used in production data environments.</p>
 
     <div class="pipeline" style="margin-top:36px;">
       <div class="phase">
@@ -296,7 +296,7 @@ pre {
   <div class="sec fi">
     <div class="sec-tag">Audit findings</div>
     <h2 class="sec-title">6 Data Quality Issues Identified</h2>
-    <p class="sec-body">A structured pre-cleaning audit is non-negotiable. Understanding the nature and scale of each issue determines the right technique — and prevents over-engineering.</p>
+    <p class="sec-body">A structured pre-cleaning audit is non-negotiable. Understanding the nature and scale of each issue determines the right technique, and prevents over-engineering.</p>
     <div class="issues-grid">
       <div class="issue">
         <div class="issue-num">Issue 01</div>
@@ -319,19 +319,19 @@ pre {
       <div class="issue">
         <div class="issue-num">Issue 04</div>
         <h4>Inconsistent Categorical Encoding</h4>
-        <p>SoldAsVacant had 4 distinct values: <em>Yes</em> (51,403), <em>No</em> (4,623), <em>Y</em> (52), <em>N</em> (399) — from multiple data entry operators using different conventions. GROUP BY produces 4 groups instead of 2; boolean logic breaks.</p>
+        <p>SoldAsVacant had 4 distinct values: <em>Yes</em> (51,403), <em>No</em> (4,623), <em>Y</em> (52), <em>N</em> (399), from multiple data entry operators using different conventions. GROUP BY produces 4 groups instead of 2; boolean logic breaks.</p>
         <span class="fix">CASE WHEN + UPDATE</span>
       </div>
       <div class="issue">
         <div class="issue-num">Issue 05</div>
         <h4>PII Column Present</h4>
-        <p>OwnerName column contained individual owner names — personal identifiers with no analytical value for market-level housing analysis. Retaining them unnecessarily increases privacy risk.</p>
+        <p>OwnerName column contained individual owner names, personal identifiers with no analytical value for market-level housing analysis. Retaining them unnecessarily increases privacy risk.</p>
         <span class="fix">ALTER TABLE DROP COLUMN</span>
       </div>
       <div class="issue">
         <div class="issue-num">Issue 06</div>
         <h4>No Engineered Time Features</h4>
-        <p>SaleDate exists but no SaleMonth, SaleYear, or SaleQuarter. Every monthly analysis required EXTRACT() inline in every query — hurting performance and readability at scale.</p>
+        <p>SaleDate exists but no SaleMonth, SaleYear, or SaleQuarter. Every monthly analysis required EXTRACT() inline in every query, hurting performance and readability at scale.</p>
         <span class="fix">EXTRACT(MONTH FROM date) + UPDATE</span>
       </div>
     </div>
@@ -343,7 +343,7 @@ pre {
   <div class="sec fi">
     <div class="sec-tag">The pipeline</div>
     <h2 class="sec-title">Step-by-Step Cleaning</h2>
-    <p class="sec-body">Every step follows the same pattern: <strong>audit → transform → validate</strong>. No step is assumed to have worked — each is verified with a query before moving on.</p>
+    <p class="sec-body">Every step follows the same pattern: <strong>audit → transform → validate</strong>. No step is assumed to have worked, each is verified with a query before moving on.</p>
 
     <!-- Step 1 -->
     <div class="sql-step">
@@ -413,7 +413,7 @@ pre {
         <span class="technique">SUBSTRING_INDEX() · TRIM() · ALTER TABLE ADD/DROP</span>
       </div>
       <div class="sql-body">
-        <p>Both address columns stored multiple values in one field. Decomposing them into atomic columns enables city-level aggregations, state-level joins, and geographic analysis — none of which were possible on the raw compound fields.</p>
+        <p>Both address columns stored multiple values in one field. Decomposing them into atomic columns enables city-level aggregations, state-level joins, and geographic analysis, none of which were possible on the raw compound fields.</p>
         <pre><span class="sql-com">-- Add atomic columns</span>
 <span class="sql-kw">ALTER TABLE</span> housing_data
   <span class="sql-kw">ADD</span> PropertyStreet <span class="sql-kw">VARCHAR</span>(<span class="sql-num">255</span>),
@@ -434,7 +434,7 @@ pre {
   OwnerState  = <span class="sql-fn">TRIM</span>(<span class="sql-fn">SUBSTRING_INDEX</span>(OwnerAddress, <span class="sql-str">','</span>, -<span class="sql-num">1</span>));</pre>
         <div class="outcome">
           <span class="outcome-icon">✓</span>
-          <p><strong>Result:</strong> 2 compound address columns decomposed into <strong>5 atomic columns</strong> — PropertyStreet, PropertyCity, OwnerStreet, OwnerCity, OwnerState. City-level and state-level analysis is now possible without parsing in every downstream query.</p>
+          <p><strong>Result:</strong> 2 compound address columns decomposed into <strong>5 atomic columns</strong>, PropertyStreet, PropertyCity, OwnerStreet, OwnerCity, OwnerState. City-level and state-level analysis is now possible without parsing in every downstream query.</p>
         </div>
       </div>
     </div>
@@ -486,7 +486,7 @@ pre {
 <span class="sql-kw">SET</span> SaleMonth = <span class="sql-fn">EXTRACT</span>(<span class="sql-kw">MONTH FROM</span> SaleDate);</pre>
         <div class="outcome">
           <span class="outcome-icon">✓</span>
-          <p><strong>Result:</strong> PII eliminated. SaleMonth populated for all 56,477 rows — validated with GROUP BY confirming exactly 12 distinct month values (1–12). null_SaleMonth = 0.</p>
+          <p><strong>Result:</strong> PII eliminated. SaleMonth populated for all 56,477 rows, validated with GROUP BY confirming exactly 12 distinct month values (1–12). null_SaleMonth = 0.</p>
         </div>
       </div>
     </div>
@@ -533,42 +533,42 @@ pre {
     <!-- Chart 1: City Prices -->
     <div class="chart-block">
       <div class="chart-header">
-        <div class="chart-num">Query 01 — City Price Analysis</div>
+        <div class="chart-num">Query 01, City Price Analysis</div>
         <div class="chart-title">Average Sale Price by City (Top 10)</div>
         <div class="chart-q">Which cities command the highest average property prices in the Nashville metro area?</div>
       </div>
       <div class="chart-canvas-wrap"><canvas id="chart1" height="110"></canvas></div>
       <div class="chart-finding">
         <div class="fi-icon">↗</div>
-        <div class="finding-text"><strong>Finding:</strong> Nashville dominates transaction volume with 40,275 sales at an average of <strong>$366,292</strong> — significantly higher than surrounding suburbs. Brentwood ($312K) and Goodlettsville ($290K) are the next most premium markets. This analysis was only possible after PropertyCity was decomposed from the compound address field — it would have been impossible on the raw data.</div>
+        <div class="finding-text"><strong>Finding:</strong> Nashville dominates transaction volume with 40,275 sales at an average of <strong>$366,292</strong>, significantly higher than surrounding suburbs. Brentwood ($312K) and Goodlettsville ($290K) are the next most premium markets. This analysis was only possible after PropertyCity was decomposed from the compound address field, it would have been impossible on the raw data.</div>
       </div>
     </div>
 
     <!-- Chart 2: Monthly Volume -->
     <div class="chart-block" style="margin-top:20px;">
       <div class="chart-header">
-        <div class="chart-num">Query 02 — Seasonal Pattern</div>
+        <div class="chart-num">Query 02, Seasonal Pattern</div>
         <div class="chart-title">Monthly Transaction Volume & Avg Price</div>
-        <div class="chart-q">Which months drive peak transaction activity — and does price vary seasonally?</div>
+        <div class="chart-q">Which months drive peak transaction activity, and does price vary seasonally?</div>
       </div>
       <div class="chart-canvas-wrap"><canvas id="chart2" height="110"></canvas></div>
       <div class="chart-finding">
         <div class="fi-icon">↗</div>
-        <div class="finding-text"><strong>Finding:</strong> Transaction volume peaks sharply in <strong>May–June</strong> (spring buying season), consistent with US housing market norms. February is the slowest month. Notably, <strong>January shows an unusually high average price ($667K)</strong> — driven by a small number of high-value commercial transactions, a pattern only detectable after the SaleMonth feature was engineered. This query ran directly off the pre-computed SaleMonth column with no inline EXTRACT() needed.</div>
+        <div class="finding-text"><strong>Finding:</strong> Transaction volume peaks sharply in <strong>May–June</strong> (spring buying season), consistent with US housing market norms. February is the slowest month. Notably, <strong>January shows an unusually high average price ($667K)</strong>, driven by a small number of high-value commercial transactions, a pattern only detectable after the SaleMonth feature was engineered. This query ran directly off the pre-computed SaleMonth column with no inline EXTRACT() needed.</div>
       </div>
     </div>
 
     <!-- Chart 3: Property Type -->
     <div class="chart-block" style="margin-top:20px;">
       <div class="chart-header">
-        <div class="chart-num">Query 03 — Property Type Analysis</div>
+        <div class="chart-num">Query 03, Property Type Analysis</div>
         <div class="chart-title">Avg Price by Property Type (Top Residential)</div>
         <div class="chart-q">What are the price differentials between residential property types in Nashville?</div>
       </div>
       <div class="chart-canvas-wrap"><canvas id="chart3" height="100"></canvas></div>
       <div class="chart-finding">
         <div class="fi-icon">↗</div>
-        <div class="finding-text"><strong>Finding:</strong> Single Family homes (21,378 transactions) average <strong>$284,265</strong> — the most liquid segment of the market. Multi-unit properties (Duplex, Triplex, Quadplex) range $220K–$297K. The 4+ bedroom Quadplex category at $297K with 6.1 avg bedrooms represents the highest density value in the residential market. Normalised SoldAsVacant flag enables clean segmentation of vacant vs occupied transactions, which was unreliable with the original 4-value encoding.</div>
+        <div class="finding-text"><strong>Finding:</strong> Single Family homes (21,378 transactions) average <strong>$284,265</strong>, the most liquid segment of the market. Multi-unit properties (Duplex, Triplex, Quadplex) range $220K–$297K. The 4+ bedroom Quadplex category at $297K with 6.1 avg bedrooms represents the highest density value in the residential market. Normalised SoldAsVacant flag enables clean segmentation of vacant vs occupied transactions, which was unreliable with the original 4-value encoding.</div>
       </div>
     </div>
 
@@ -612,7 +612,7 @@ pre {
     <h2 class="sec-title">SQL Skills Applied</h2>
     <div class="skills-wrap">
       <div class="skill-cat">
-        <h4>DDL — Schema Management</h4>
+        <h4>DDL, Schema Management</h4>
         <span class="skill-tag">CREATE TABLE</span>
         <span class="skill-tag">ALTER TABLE ADD</span>
         <span class="skill-tag">ALTER TABLE DROP</span>
@@ -622,7 +622,7 @@ pre {
         <span class="skill-tag">DROP VIEW IF EXISTS</span>
       </div>
       <div class="skill-cat">
-        <h4>DML — Data Transformation</h4>
+        <h4>DML, Data Transformation</h4>
         <span class="skill-tag">UPDATE ... SET</span>
         <span class="skill-tag">INNER JOIN UPDATE</span>
         <span class="skill-tag">CASE WHEN ... END</span>
@@ -672,7 +672,7 @@ Chart.defaults.color = '#4a6278';
 const grid = 'rgba(220,230,240,0.6)';
 const tip = { backgroundColor: '#0d1b2e', titleColor: '#fff', bodyColor: '#9fb3c8', padding: 12 };
 
-// Chart 1: City Prices — real data from notebook
+// Chart 1: City Prices, real data from notebook
 new Chart(document.getElementById('chart1'), {
   type: 'bar',
   data: {
@@ -693,7 +693,7 @@ new Chart(document.getElementById('chart1'), {
   }
 });
 
-// Chart 2: Monthly transactions & avg price — real data
+// Chart 2: Monthly transactions & avg price, real data
 new Chart(document.getElementById('chart2'), {
   type: 'bar',
   data: {
@@ -714,7 +714,7 @@ new Chart(document.getElementById('chart2'), {
   }
 });
 
-// Chart 3: Property Type — real data
+// Chart 3: Property Type, real data
 new Chart(document.getElementById('chart3'), {
   type: 'bar',
   data: {
