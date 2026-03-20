@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nashville Housing SQL — Benard Mwinzi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy: #0d1b2e;
+  --navy2: #152540;
+  --navy3: #1e3358;
+  --gold: #c9973a;
+  --gold-lt: #e0b55a;
+  --teal: #0a7e8c;
+  --teal-lt: #13a3b4;
+  --slate: #5a7191;
+  --mist: #9fb3c8;
+  --fog: #dce6f0;
+  --paper: #f6f8fb;
+  --white: #fff;
+  --text: #1a2636;
+  --text2: #4a6278;
+  --green: #1a7a4a;
+  --red: #c0392b;
+  --code-bg: #0f1923;
+  --code-text: #a8d8a8;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Outfit', sans-serif; background: var(--paper); color: var(--text); overflow-x: hidden; line-height: 1.6; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 60px; padding: 0 6%;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(13,27,46,0.97);
+  border-bottom: 1px solid rgba(201,151,58,0.18);
+}
+.nav-brand { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--gold); text-decoration: none; }
+.nav-back { font-size: 13px; color: var(--mist); text-decoration: none; transition: color .2s; }
+.nav-back:hover { color: var(--gold); }
+.nav-back::before { content: '← '; }
+
+/* HERO */
+.proj-hero { background: var(--navy); padding: 120px 6% 72px; position: relative; overflow: hidden; }
+.proj-hero-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 75% 40%, rgba(10,126,140,0.1) 0%, transparent 55%),
+    radial-gradient(circle at 20% 75%, rgba(201,151,58,0.05) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(255,255,255,0.015) 60px),
+    repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(255,255,255,0.015) 60px);
+}
+.proj-hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 2; }
+.proj-tag { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal-lt); margin-bottom: 20px; }
+.proj-tag::before { content: ''; width: 24px; height: 1px; background: var(--teal-lt); }
+.proj-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4.5vw, 56px); color: #fff; line-height: 1.1; margin-bottom: 16px; }
+.proj-subtitle { font-size: 17px; color: var(--gold); font-weight: 300; margin-bottom: 28px; }
+.proj-meta { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 36px; }
+.meta-item { display: flex; flex-direction: column; gap: 3px; }
+.meta-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--slate); }
+.meta-val { font-size: 14px; color: var(--mist); }
+.proj-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.plink { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-decoration: none; transition: all .2s; }
+.plink-gh { background: var(--teal); color: #fff; }
+.plink-gh:hover { background: var(--teal-lt); transform: translateY(-2px); }
+.plink-nb { border: 1px solid rgba(201,151,58,0.5); color: var(--gold); }
+.plink-nb:hover { background: rgba(201,151,58,0.08); border-color: var(--gold); transform: translateY(-2px); }
+
+/* KPI STRIP */
+.kpi-strip { background: var(--navy2); border-bottom: 1px solid rgba(10,126,140,0.2); }
+.kpi-strip-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+.kpi { padding: 22px 16px; text-align: center; border-right: 1px solid rgba(10,126,140,0.12); }
+.kpi:last-child { border-right: none; }
+.kpi-num { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--teal-lt); display: block; line-height: 1; margin-bottom: 5px; }
+.kpi-label { font-size: 10px; color: var(--slate); font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; }
+
+/* LAYOUT */
+.content { max-width: 1100px; margin: 0 auto; padding: 0 6%; }
+.sec { padding-top: 68px; }
+.sec-tag { display: inline-flex; align-items: center; gap: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+.sec-tag::before { content: ''; width: 20px; height: 1px; background: var(--gold); }
+.sec-title { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 36px); color: var(--navy); margin-bottom: 14px; }
+.sec-body { font-size: 15px; color: var(--text2); line-height: 1.8; max-width: 760px; }
+
+/* PIPELINE VISUAL */
+.pipeline { display: flex; gap: 0; margin-top: 36px; flex-wrap: wrap; }
+.phase { flex: 1; min-width: 200px; background: var(--white); border: 1px solid var(--fog); border-right: none; padding: 24px 20px; position: relative; }
+.phase:last-child { border-right: 1px solid var(--fog); }
+.phase::after { content: '→'; position: absolute; right: -13px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--teal); z-index: 2; background: var(--paper); padding: 2px 0; }
+.phase:last-child::after { display: none; }
+.phase-label { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; }
+.phase-title { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+.phase-items { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.phase-items li { font-size: 12px; color: var(--text2); padding-left: 14px; position: relative; line-height: 1.4; }
+.phase-items li::before { content: '·'; position: absolute; left: 4px; color: var(--teal); font-weight: 700; }
+
+/* ISSUES GRID */
+.issues-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+.issue { background: var(--white); border: 1px solid var(--fog); padding: 20px; border-top: 3px solid var(--red); }
+.issue-num { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--red); margin-bottom: 6px; }
+.issue h4 { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+.issue p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.issue .fix { display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); }
+.issue .fix::before { content: '✓ Fix: '; }
+
+/* SQL BLOCKS */
+.sql-step { margin-top: 32px; background: var(--white); border: 1px solid var(--fog); overflow: hidden; }
+.sql-step-header { display: flex; align-items: center; gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--fog); }
+.step-badge { width: 28px; height: 28px; border-radius: 50%; background: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; }
+.step-badge.done { background: var(--green); }
+.sql-step-header h3 { font-size: 15px; font-weight: 600; color: var(--navy); flex: 1; }
+.sql-step-header .technique { font-size: 11px; color: var(--teal); font-weight: 600; letter-spacing: 0.08em; background: rgba(10,126,140,0.08); padding: 3px 10px; }
+.sql-body { padding: 18px 22px; }
+.sql-body p { font-size: 14px; color: var(--text2); line-height: 1.7; margin-bottom: 14px; }
+.sql-body p:last-child { margin-bottom: 0; }
+pre {
+  background: var(--code-bg);
+  border-radius: 0;
+  padding: 18px 20px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--code-text);
+  margin: 14px 0;
+}
+.sql-kw { color: #569cd6; }
+.sql-fn { color: #dcdcaa; }
+.sql-str { color: #ce9178; }
+.sql-com { color: #6a9955; }
+.sql-num { color: #b5cea8; }
+.outcome { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 12px 16px; background: rgba(26,122,74,0.06); border-left: 3px solid var(--green); }
+.outcome-icon { color: var(--green); font-weight: 700; flex-shrink: 0; }
+.outcome p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.outcome strong { color: var(--navy); }
+
+/* RESULTS TABLE */
+.results-table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 13px; }
+.results-table th { text-align: left; padding: 10px 14px; background: var(--navy); color: var(--mist); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.results-table td { padding: 11px 14px; border-bottom: 1px solid var(--fog); color: var(--text2); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.results-table td:first-child { color: var(--navy); font-weight: 500; }
+.results-table tr:hover td { background: var(--paper); }
+.results-table tr:last-child td { border-bottom: none; }
+
+/* BEFORE/AFTER */
+.ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 28px; background: var(--fog); }
+.ba-col { background: var(--white); padding: 24px; }
+.ba-head { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--fog); }
+.ba-head.before { color: var(--red); }
+.ba-head.after { color: var(--green); }
+.ba-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--fog); font-size: 13px; }
+.ba-row:last-child { border-bottom: none; }
+.ba-row .metric { color: var(--text2); }
+.ba-row .val-before { color: var(--red); font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.ba-row .val-after { color: var(--green); font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.ba-row .val-after::after { content: '✓'; font-size: 11px; }
+
+/* CHART BLOCK */
+.chart-block { margin-top: 36px; background: var(--white); border: 1px solid var(--fog); overflow: hidden; }
+.chart-header { padding: 20px 24px 0; }
+.chart-num { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+.chart-title { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--navy); margin-bottom: 5px; }
+.chart-q { font-size: 13px; color: var(--slate); font-style: italic; }
+.chart-canvas-wrap { padding: 18px 24px; }
+.chart-finding { background: var(--paper); border-top: 1px solid var(--fog); padding: 16px 24px; display: flex; gap: 12px; align-items: flex-start; }
+.fi-icon { width: 28px; height: 28px; background: var(--teal); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; flex-shrink: 0; }
+.finding-text { font-size: 14px; color: var(--text2); line-height: 1.7; }
+.finding-text strong { color: var(--navy); }
+
+/* SKILLS */
+.skills-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+.skill-cat { background: var(--white); border: 1px solid var(--fog); padding: 22px; }
+.skill-cat h4 { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--fog); }
+.skill-tag { display: inline-block; margin: 3px 3px 3px 0; padding: 5px 11px; background: var(--paper); border: 1px solid var(--fog); font-size: 12px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+
+.divider { height: 1px; background: var(--fog); margin-top: 60px; }
+
+.proj-footer { background: var(--navy); margin-top: 80px; padding: 36px 6%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.proj-footer p { font-size: 13px; color: var(--slate); }
+.proj-footer a { font-size: 13px; color: var(--mist); text-decoration: none; transition: color .2s; }
+.proj-footer a:hover { color: var(--gold); }
+
+.fi { opacity: 0; transform: translateY(18px); transition: opacity .5s ease, transform .5s ease; }
+.fi.in { opacity: 1; transform: none; }
+
+@media (max-width: 768px) {
+  .kpi-strip-inner { grid-template-columns: 1fr 1fr 1fr; }
+  .pipeline { flex-direction: column; }
+  .phase { border-right: 1px solid var(--fog); border-bottom: none; }
+  .phase:last-child { border-bottom: 1px solid var(--fog); }
+  .phase::after { display: none; }
+  .issues-grid, .ba-grid, .skills-wrap { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .kpi-strip-inner { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-back">Back to portfolio</a>
+  <a href="index.html" class="nav-brand">Benard Mwinzi</a>
+</nav>
+
+<div class="proj-hero">
+  <div class="proj-hero-bg"></div>
+  <div class="proj-hero-inner">
+    <div class="proj-tag">Project 03 · SQL · Data Engineering</div>
+    <h1 class="proj-title">Nashville Housing Data —<br>SQL Data Cleaning & Analysis</h1>
+    <p class="proj-subtitle">An end-to-end SQL pipeline transforming 56,477 raw property records into a clean, analysis-ready dataset</p>
+    <div class="proj-meta">
+      <div class="meta-item"><span class="meta-label">Dataset</span><span class="meta-val">Nashville Housing (Davidson County, TN)</span></div>
+      <div class="meta-item"><span class="meta-label">Records</span><span class="meta-val">56,477 rows · 19 columns (raw)</span></div>
+      <div class="meta-item"><span class="meta-label">Period</span><span class="meta-val">January 2013 – December 2019</span></div>
+      <div class="meta-item"><span class="meta-label">Tools</span><span class="meta-val">MySQL · Python · PyMySQL · Jupyter Notebook</span></div>
+    </div>
+    <div class="proj-links">
+      <a href="https://github.com/BenaData/MySQL-Data-Cleaning-and-Analysis-Series" target="_blank" class="plink plink-gh">⌥ View on GitHub</a>
+      <a href="https://www.kaggle.com/datasets/tmthyjames/nashville-housing-data" target="_blank" class="plink plink-nb">◈ Source Dataset</a>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi-strip-inner">
+    <div class="kpi"><span class="kpi-num">56,477</span><span class="kpi-label">Records cleaned</span></div>
+    <div class="kpi"><span class="kpi-num">0</span><span class="kpi-label">Rows lost in pipeline</span></div>
+    <div class="kpi"><span class="kpi-num">6</span><span class="kpi-label">Quality issues resolved</span></div>
+    <div class="kpi"><span class="kpi-num">5</span><span class="kpi-label">Atomic columns from 2</span></div>
+    <div class="kpi"><span class="kpi-num">100%</span><span class="kpi-label">Integrity preserved</span></div>
+  </div>
+</div>
+
+<div style="padding: 0 0 80px;">
+<div class="content">
+
+  <!-- CONTEXT -->
+  <div class="sec fi">
+    <div class="sec-tag">Why this matters</div>
+    <h2 class="sec-title">Raw Data Is Never Analysis-Ready</h2>
+    <p class="sec-body">In real-world data pipelines, data cleaning is often the most critical — and most underestimated — phase. A single null field, inconsistent category label, or compound address column can silently corrupt every downstream analysis, dashboard, or model built on top of it. This project demonstrates professional-grade SQL data engineering by transforming a publicly available but genuinely messy real estate dataset into a clean, normalised, analysis-ready table — following the same four-phase approach used in production data environments.</p>
+
+    <div class="pipeline" style="margin-top:36px;">
+      <div class="phase">
+        <div class="phase-label">Phase 1</div>
+        <div class="phase-title">Assess</div>
+        <ul class="phase-items">
+          <li>Schema review</li>
+          <li>Null & blank audit</li>
+          <li>Value distributions</li>
+          <li>Data type verification</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-label">Phase 2</div>
+        <div class="phase-title">Clean</div>
+        <ul class="phase-items">
+          <li>Date standardisation</li>
+          <li>Null imputation</li>
+          <li>Flag normalisation</li>
+          <li>PII removal</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-label">Phase 3</div>
+        <div class="phase-title">Enrich</div>
+        <ul class="phase-items">
+          <li>Address decomposition</li>
+          <li>SaleMonth engineering</li>
+          <li>Atomic column creation</li>
+          <li>Type optimisation</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-label">Phase 4</div>
+        <div class="phase-title">Validate</div>
+        <ul class="phase-items">
+          <li>Row count checks</li>
+          <li>Distinct value audits</li>
+          <li>Range verification</li>
+          <li>Null re-checks</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- DATA QUALITY ISSUES -->
+  <div class="sec fi">
+    <div class="sec-tag">Audit findings</div>
+    <h2 class="sec-title">6 Data Quality Issues Identified</h2>
+    <p class="sec-body">A structured pre-cleaning audit is non-negotiable. Understanding the nature and scale of each issue determines the right technique — and prevents over-engineering.</p>
+    <div class="issues-grid">
+      <div class="issue">
+        <div class="issue-num">Issue 01</div>
+        <h4>Date Format Inconsistency</h4>
+        <p>SaleDate stored as natural language strings <code style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--paper);padding:1px 5px;">"April 9, 2013"</code> rather than ISO 8601. Silent type errors in date arithmetic without explicit standardisation.</p>
+        <span class="fix">STR_TO_DATE() + ALTER TABLE MODIFY</span>
+      </div>
+      <div class="issue">
+        <div class="issue-num">Issue 02</div>
+        <h4>29 Missing Property Addresses</h4>
+        <p>29 rows with blank PropertyAddress values due to data entry gaps in the source system. City-level analysis would silently exclude these properties without imputation.</p>
+        <span class="fix">Self-join on ParcelID + CREATE VIEW</span>
+      </div>
+      <div class="issue">
+        <div class="issue-num">Issue 03</div>
+        <h4>Compound Address Columns (1NF Violation)</h4>
+        <p>PropertyAddress and OwnerAddress each stored multiple pieces of data in a single field, violating First Normal Form. City-level aggregations and geographic joins were impossible.</p>
+        <span class="fix">SUBSTRING_INDEX() + ALTER TABLE ADD</span>
+      </div>
+      <div class="issue">
+        <div class="issue-num">Issue 04</div>
+        <h4>Inconsistent Categorical Encoding</h4>
+        <p>SoldAsVacant had 4 distinct values: <em>Yes</em> (51,403), <em>No</em> (4,623), <em>Y</em> (52), <em>N</em> (399) — from multiple data entry operators using different conventions. GROUP BY produces 4 groups instead of 2; boolean logic breaks.</p>
+        <span class="fix">CASE WHEN + UPDATE</span>
+      </div>
+      <div class="issue">
+        <div class="issue-num">Issue 05</div>
+        <h4>PII Column Present</h4>
+        <p>OwnerName column contained individual owner names — personal identifiers with no analytical value for market-level housing analysis. Retaining them unnecessarily increases privacy risk.</p>
+        <span class="fix">ALTER TABLE DROP COLUMN</span>
+      </div>
+      <div class="issue">
+        <div class="issue-num">Issue 06</div>
+        <h4>No Engineered Time Features</h4>
+        <p>SaleDate exists but no SaleMonth, SaleYear, or SaleQuarter. Every monthly analysis required EXTRACT() inline in every query — hurting performance and readability at scale.</p>
+        <span class="fix">EXTRACT(MONTH FROM date) + UPDATE</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CLEANING PIPELINE -->
+  <div class="sec fi">
+    <div class="sec-tag">The pipeline</div>
+    <h2 class="sec-title">Step-by-Step Cleaning</h2>
+    <p class="sec-body">Every step follows the same pattern: <strong>audit → transform → validate</strong>. No step is assumed to have worked — each is verified with a query before moving on.</p>
+
+    <!-- Step 1 -->
+    <div class="sql-step">
+      <div class="sql-step-header">
+        <div class="step-badge done">1</div>
+        <h3>Date Standardisation</h3>
+        <span class="technique">STR_TO_DATE() · ALTER TABLE MODIFY</span>
+      </div>
+      <div class="sql-body">
+        <p>The raw CSV contained dates in natural language format. An explicit re-cast ensures no edge cases in date arithmetic, filtering, or time-series aggregations.</p>
+        <pre><span class="sql-com">-- Convert 'April 9, 2013' → ISO 8601 DATE</span>
+<span class="sql-kw">UPDATE</span> housing_data
+<span class="sql-kw">SET</span> SaleDate = <span class="sql-fn">STR_TO_DATE</span>(SaleDate, <span class="sql-str">'%M %d, %Y'</span>);
+
+<span class="sql-com">-- Change column type to DATE</span>
+<span class="sql-kw">ALTER TABLE</span> housing_data
+<span class="sql-kw">MODIFY COLUMN</span> SaleDate DATE;</pre>
+        <div class="outcome">
+          <span class="outcome-icon">✓</span>
+          <p><strong>Result:</strong> All 56,477 SaleDate values converted to ISO 8601 <code style="font-family:'JetBrains Mono',monospace;font-size:11px;">YYYY-MM-DD</code> format. Date range confirmed: 2013-01-02 → 2019-12-13.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="sql-step" style="margin-top:16px;">
+      <div class="sql-step-header">
+        <div class="step-badge done">2</div>
+        <h3>Property Address Imputation via Self-Join</h3>
+        <span class="technique">Self-join · CREATE VIEW · INNER JOIN UPDATE</span>
+      </div>
+      <div class="sql-body">
+        <p>The key insight: properties on the same land parcel (same ParcelID) share a physical address. By self-joining the table on ParcelID (excluding same-row matches), we can find a "donor" row with a known address to fill in the blank.</p>
+        <pre><span class="sql-com">-- Preview: find donor addresses for blank rows</span>
+<span class="sql-kw">SELECT</span> a.UniqueID, a.ParcelID,
+       a.PropertyAddress <span class="sql-kw">AS</span> current_address,
+       b.PropertyAddress <span class="sql-kw">AS</span> donor_address
+<span class="sql-kw">FROM</span> housing_data a
+<span class="sql-kw">JOIN</span> housing_data b
+    <span class="sql-kw">ON</span>  a.ParcelID  = b.ParcelID
+    <span class="sql-kw">AND</span> a.UniqueID <span class="sql-kw">&lt;&gt;</span> b.UniqueID
+<span class="sql-kw">WHERE</span> a.PropertyAddress = <span class="sql-str">''</span>;
+
+<span class="sql-com">-- Materialise as a view for reusability</span>
+<span class="sql-kw">CREATE VIEW</span> updated_address <span class="sql-kw">AS</span>
+<span class="sql-kw">SELECT</span> a.UniqueID, a.ParcelID,
+    <span class="sql-fn">IF</span>(a.PropertyAddress = <span class="sql-str">''</span>,
+       b.PropertyAddress,
+       a.PropertyAddress) <span class="sql-kw">AS</span> resolved_address
+<span class="sql-kw">FROM</span> housing_data a
+<span class="sql-kw">JOIN</span> housing_data b
+    <span class="sql-kw">ON</span> a.ParcelID = b.ParcelID
+    <span class="sql-kw">AND</span> a.UniqueID <span class="sql-kw">&lt;&gt;</span> b.UniqueID
+<span class="sql-kw">WHERE</span> a.PropertyAddress = <span class="sql-str">''</span>;</pre>
+        <div class="outcome">
+          <span class="outcome-icon">✓</span>
+          <p><strong>Result:</strong> All 29 missing PropertyAddress values imputed from sibling records on the same parcel. blank_PropertyStreet = 0, blank_PropertyCity = 0 confirmed in final validation query.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="sql-step" style="margin-top:16px;">
+      <div class="sql-step-header">
+        <div class="step-badge done">3</div>
+        <h3>Address Decomposition (1NF Normalisation)</h3>
+        <span class="technique">SUBSTRING_INDEX() · TRIM() · ALTER TABLE ADD/DROP</span>
+      </div>
+      <div class="sql-body">
+        <p>Both address columns stored multiple values in one field. Decomposing them into atomic columns enables city-level aggregations, state-level joins, and geographic analysis — none of which were possible on the raw compound fields.</p>
+        <pre><span class="sql-com">-- Add atomic columns</span>
+<span class="sql-kw">ALTER TABLE</span> housing_data
+  <span class="sql-kw">ADD</span> PropertyStreet <span class="sql-kw">VARCHAR</span>(<span class="sql-num">255</span>),
+  <span class="sql-kw">ADD</span> PropertyCity   <span class="sql-kw">VARCHAR</span>(<span class="sql-num">100</span>);
+
+<span class="sql-com">-- Parse using SUBSTRING_INDEX on comma delimiter</span>
+<span class="sql-kw">UPDATE</span> housing_data <span class="sql-kw">SET</span>
+  PropertyStreet = <span class="sql-fn">TRIM</span>(<span class="sql-fn">SUBSTRING_INDEX</span>(PropertyAddress, <span class="sql-str">','</span>, <span class="sql-num">1</span>)),
+  PropertyCity   = <span class="sql-fn">TRIM</span>(<span class="sql-fn">SUBSTRING_INDEX</span>(PropertyAddress, <span class="sql-str">','</span>, -<span class="sql-num">1</span>));
+
+<span class="sql-com">-- Drop original compound column</span>
+<span class="sql-kw">ALTER TABLE</span> housing_data <span class="sql-kw">DROP COLUMN</span> PropertyAddress;
+
+<span class="sql-com">-- Same for OwnerAddress → Street + City + State</span>
+<span class="sql-kw">UPDATE</span> housing_data <span class="sql-kw">SET</span>
+  OwnerStreet = <span class="sql-fn">TRIM</span>(<span class="sql-fn">SUBSTRING_INDEX</span>(OwnerAddress, <span class="sql-str">','</span>, <span class="sql-num">1</span>)),
+  OwnerCity   = <span class="sql-fn">TRIM</span>(<span class="sql-fn">SUBSTRING_INDEX</span>(<span class="sql-fn">SUBSTRING_INDEX</span>(OwnerAddress, <span class="sql-str">','</span>, -<span class="sql-num">2</span>), <span class="sql-str">','</span>, <span class="sql-num">1</span>)),
+  OwnerState  = <span class="sql-fn">TRIM</span>(<span class="sql-fn">SUBSTRING_INDEX</span>(OwnerAddress, <span class="sql-str">','</span>, -<span class="sql-num">1</span>));</pre>
+        <div class="outcome">
+          <span class="outcome-icon">✓</span>
+          <p><strong>Result:</strong> 2 compound address columns decomposed into <strong>5 atomic columns</strong> — PropertyStreet, PropertyCity, OwnerStreet, OwnerCity, OwnerState. City-level and state-level analysis is now possible without parsing in every downstream query.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="sql-step" style="margin-top:16px;">
+      <div class="sql-step-header">
+        <div class="step-badge done">4</div>
+        <h3>SoldAsVacant Flag Normalisation</h3>
+        <span class="technique">CASE WHEN · UPDATE · GROUP BY validation</span>
+      </div>
+      <div class="sql-body">
+        <p>The SoldAsVacant column had 4 distinct values from multiple data entry operators using different conventions. GROUP BY on this column was producing 4 groups instead of 2, breaking boolean logic in every downstream filter.</p>
+        <pre><span class="sql-com">-- Audit before transformation</span>
+<span class="sql-kw">SELECT</span> SoldAsVacant, <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">AS</span> count
+<span class="sql-kw">FROM</span> housing_data
+<span class="sql-kw">GROUP BY</span> SoldAsVacant;
+<span class="sql-com">-- Returns: 'No' (51,403) | 'N' (399) | 'Y' (52) | 'Yes' (4,623)</span>
+
+<span class="sql-com">-- Normalise all variants to Y / N</span>
+<span class="sql-kw">UPDATE</span> housing_data
+<span class="sql-kw">SET</span> SoldAsVacant = <span class="sql-kw">CASE</span>
+    <span class="sql-kw">WHEN</span> SoldAsVacant <span class="sql-kw">IN</span> (<span class="sql-str">'Yes'</span>, <span class="sql-str">'Y'</span>) <span class="sql-kw">THEN</span> <span class="sql-str">'Y'</span>
+    <span class="sql-kw">ELSE</span> <span class="sql-str">'N'</span>
+<span class="sql-kw">END</span>;</pre>
+        <div class="outcome">
+          <span class="outcome-icon">✓</span>
+          <p><strong>Result:</strong> 4 inconsistent values collapsed to exactly 2 canonical values (Y / N). Validation confirmed: <code style="font-family:'JetBrains Mono',monospace;font-size:11px;">sold_as_vacant_distinct_vals = 2</code>. All 56,477 rows reclassified correctly.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="sql-step" style="margin-top:16px;">
+      <div class="sql-step-header">
+        <div class="step-badge done">5</div>
+        <h3>PII Removal & Feature Engineering</h3>
+        <span class="technique">ALTER TABLE DROP COLUMN · EXTRACT() · TINYINT</span>
+      </div>
+      <div class="sql-body">
+        <p>Owner names are personal identifiers with no analytical value for market-level housing analysis. Retaining them unnecessarily increases privacy risk. Simultaneously, a pre-computed SaleMonth column eliminates repeated EXTRACT() calls in downstream queries.</p>
+        <pre><span class="sql-com">-- Remove PII: owner name has no analytical value</span>
+<span class="sql-kw">ALTER TABLE</span> housing_data <span class="sql-kw">DROP COLUMN</span> OwnerName;
+
+<span class="sql-com">-- Engineer SaleMonth as a stored TINYINT column</span>
+<span class="sql-kw">ALTER TABLE</span> housing_data <span class="sql-kw">ADD</span> SaleMonth <span class="sql-kw">TINYINT</span>;
+
+<span class="sql-kw">UPDATE</span> housing_data
+<span class="sql-kw">SET</span> SaleMonth = <span class="sql-fn">EXTRACT</span>(<span class="sql-kw">MONTH FROM</span> SaleDate);</pre>
+        <div class="outcome">
+          <span class="outcome-icon">✓</span>
+          <p><strong>Result:</strong> PII eliminated. SaleMonth populated for all 56,477 rows — validated with GROUP BY confirming exactly 12 distinct month values (1–12). null_SaleMonth = 0.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- BEFORE / AFTER -->
+  <div class="sec fi">
+    <div class="sec-tag">Impact</div>
+    <h2 class="sec-title">Before vs After: Pipeline Results</h2>
+    <div class="ba-grid">
+      <div class="ba-col">
+        <div class="ba-head before">Before cleaning</div>
+        <div class="ba-row"><span class="metric">Missing PropertyAddress rows</span><span class="val-before">29</span></div>
+        <div class="ba-row"><span class="metric">Distinct SoldAsVacant values</span><span class="val-before">4</span></div>
+        <div class="ba-row"><span class="metric">Compound address columns</span><span class="val-before">2</span></div>
+        <div class="ba-row"><span class="metric">PII columns</span><span class="val-before">1 (OwnerName)</span></div>
+        <div class="ba-row"><span class="metric">Engineered time features</span><span class="val-before">0</span></div>
+        <div class="ba-row"><span class="metric">Date format</span><span class="val-before">Mixed / informal</span></div>
+        <div class="ba-row"><span class="metric">Total rows</span><span class="val-before">56,477</span></div>
+      </div>
+      <div class="ba-col">
+        <div class="ba-head after">After cleaning</div>
+        <div class="ba-row"><span class="metric">Missing PropertyAddress rows</span><span class="val-after">0</span></div>
+        <div class="ba-row"><span class="metric">Distinct SoldAsVacant values</span><span class="val-after">2</span></div>
+        <div class="ba-row"><span class="metric">Atomic address columns created</span><span class="val-after">5</span></div>
+        <div class="ba-row"><span class="metric">PII columns</span><span class="val-after">0</span></div>
+        <div class="ba-row"><span class="metric">Engineered features added</span><span class="val-after">1 (SaleMonth)</span></div>
+        <div class="ba-row"><span class="metric">Date format</span><span class="val-after">ISO 8601 YYYY-MM-DD</span></div>
+        <div class="ba-row"><span class="metric">Total rows (integrity)</span><span class="val-after">56,477 (none lost)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- POST-CLEAN EDA -->
+  <div class="sec fi">
+    <div class="sec-tag">Analytical output</div>
+    <h2 class="sec-title">Post-Clean Exploratory Analysis</h2>
+    <p class="sec-body">With a clean, normalised dataset, city-level pricing, seasonal patterns, and property type analysis become reliable. These results were impossible on the raw data.</p>
+
+    <!-- Chart 1: City Prices -->
+    <div class="chart-block">
+      <div class="chart-header">
+        <div class="chart-num">Query 01 — City Price Analysis</div>
+        <div class="chart-title">Average Sale Price by City (Top 10)</div>
+        <div class="chart-q">Which cities command the highest average property prices in the Nashville metro area?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart1" height="110"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon">↗</div>
+        <div class="finding-text"><strong>Finding:</strong> Nashville dominates transaction volume with 40,275 sales at an average of <strong>$366,292</strong> — significantly higher than surrounding suburbs. Brentwood ($312K) and Goodlettsville ($290K) are the next most premium markets. This analysis was only possible after PropertyCity was decomposed from the compound address field — it would have been impossible on the raw data.</div>
+      </div>
+    </div>
+
+    <!-- Chart 2: Monthly Volume -->
+    <div class="chart-block" style="margin-top:20px;">
+      <div class="chart-header">
+        <div class="chart-num">Query 02 — Seasonal Pattern</div>
+        <div class="chart-title">Monthly Transaction Volume & Avg Price</div>
+        <div class="chart-q">Which months drive peak transaction activity — and does price vary seasonally?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart2" height="110"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon">↗</div>
+        <div class="finding-text"><strong>Finding:</strong> Transaction volume peaks sharply in <strong>May–June</strong> (spring buying season), consistent with US housing market norms. February is the slowest month. Notably, <strong>January shows an unusually high average price ($667K)</strong> — driven by a small number of high-value commercial transactions, a pattern only detectable after the SaleMonth feature was engineered. This query ran directly off the pre-computed SaleMonth column with no inline EXTRACT() needed.</div>
+      </div>
+    </div>
+
+    <!-- Chart 3: Property Type -->
+    <div class="chart-block" style="margin-top:20px;">
+      <div class="chart-header">
+        <div class="chart-num">Query 03 — Property Type Analysis</div>
+        <div class="chart-title">Avg Price by Property Type (Top Residential)</div>
+        <div class="chart-q">What are the price differentials between residential property types in Nashville?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart3" height="100"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon">↗</div>
+        <div class="finding-text"><strong>Finding:</strong> Single Family homes (21,378 transactions) average <strong>$284,265</strong> — the most liquid segment of the market. Multi-unit properties (Duplex, Triplex, Quadplex) range $220K–$297K. The 4+ bedroom Quadplex category at $297K with 6.1 avg bedrooms represents the highest density value in the residential market. Normalised SoldAsVacant flag enables clean segmentation of vacant vs occupied transactions, which was unreliable with the original 4-value encoding.</div>
+      </div>
+    </div>
+
+    <!-- Results Table: Actual Data -->
+    <div style="margin-top:32px; background:var(--white); border:1px solid var(--fog); overflow:hidden;">
+      <div style="padding:18px 22px; border-bottom:1px solid var(--fog);">
+        <div class="chart-num">Final Validation Query</div>
+        <div class="chart-title" style="font-family:'Playfair Display',serif;font-size:17px;color:var(--navy);margin-top:4px;">Post-Clean Data Quality Dashboard</div>
+      </div>
+      <div style="padding:18px 22px;">
+        <pre><span class="sql-kw">SELECT</span>
+    <span class="sql-fn">COUNT</span>(*)                                           <span class="sql-kw">AS</span> total_rows,
+    <span class="sql-fn">SUM</span>(PropertyStreet = <span class="sql-str">''</span> <span class="sql-kw">OR</span> PropertyStreet <span class="sql-kw">IS NULL</span>) <span class="sql-kw">AS</span> blank_PropertyStreet,
+    <span class="sql-fn">SUM</span>(PropertyCity   = <span class="sql-str">''</span> <span class="sql-kw">OR</span> PropertyCity   <span class="sql-kw">IS NULL</span>) <span class="sql-kw">AS</span> blank_PropertyCity,
+    <span class="sql-fn">COUNT</span>(<span class="sql-kw">DISTINCT</span> SoldAsVacant)                        <span class="sql-kw">AS</span> sold_as_vacant_distinct_vals,
+    <span class="sql-fn">SUM</span>(SaleMonth <span class="sql-kw">IS NULL</span>)                              <span class="sql-kw">AS</span> null_SaleMonth,
+    <span class="sql-fn">MIN</span>(SaleDate)                                        <span class="sql-kw">AS</span> date_min,
+    <span class="sql-fn">MAX</span>(SaleDate)                                        <span class="sql-kw">AS</span> date_max
+<span class="sql-kw">FROM</span> housing_data;</pre>
+        <table class="results-table" style="margin-top:16px;">
+          <thead>
+            <tr><th>total_rows</th><th>blank_PropertyStreet</th><th>blank_PropertyCity</th><th>sold_as_vacant_distinct_vals</th><th>null_SaleMonth</th><th>date_min</th><th>date_max</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>56477</td><td>0.0</td><td>0.0</td><td>2</td><td>0.0</td><td>2013-01-02</td><td>2019-12-13</td></tr>
+          </tbody>
+        </table>
+        <div class="outcome" style="margin-top:16px;">
+          <span class="outcome-icon">✓</span>
+          <p><strong>All validation checks pass.</strong> 56,477 rows intact, zero blanks, exactly 2 SoldAsVacant values, zero null SaleMonth entries, ISO 8601 date range confirmed. The dataset is analysis-ready.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- SKILLS -->
+  <div class="sec fi" style="padding-bottom:0;">
+    <div class="sec-tag">Skills demonstrated</div>
+    <h2 class="sec-title">SQL Skills Applied</h2>
+    <div class="skills-wrap">
+      <div class="skill-cat">
+        <h4>DDL — Schema Management</h4>
+        <span class="skill-tag">CREATE TABLE</span>
+        <span class="skill-tag">ALTER TABLE ADD</span>
+        <span class="skill-tag">ALTER TABLE DROP</span>
+        <span class="skill-tag">MODIFY COLUMN</span>
+        <span class="skill-tag">CREATE VIEW</span>
+        <span class="skill-tag">DROP TABLE IF EXISTS</span>
+        <span class="skill-tag">DROP VIEW IF EXISTS</span>
+      </div>
+      <div class="skill-cat">
+        <h4>DML — Data Transformation</h4>
+        <span class="skill-tag">UPDATE ... SET</span>
+        <span class="skill-tag">INNER JOIN UPDATE</span>
+        <span class="skill-tag">CASE WHEN ... END</span>
+        <span class="skill-tag">IF()</span>
+        <span class="skill-tag">Self-join imputation</span>
+        <span class="skill-tag">Multi-column SET</span>
+      </div>
+      <div class="skill-cat">
+        <h4>Functions</h4>
+        <span class="skill-tag">STR_TO_DATE()</span>
+        <span class="skill-tag">SUBSTRING_INDEX()</span>
+        <span class="skill-tag">TRIM()</span>
+        <span class="skill-tag">EXTRACT(MONTH FROM)</span>
+        <span class="skill-tag">DATE()</span>
+        <span class="skill-tag">YEAR()</span>
+        <span class="skill-tag">ROUND()</span>
+      </div>
+      <div class="skill-cat">
+        <h4>Analysis & Validation</h4>
+        <span class="skill-tag">GROUP BY audits</span>
+        <span class="skill-tag">COUNT DISTINCT checks</span>
+        <span class="skill-tag">NULL detection</span>
+        <span class="skill-tag">Row integrity checks</span>
+        <span class="skill-tag">AVG / SUM / MIN / MAX</span>
+        <span class="skill-tag">LIMIT + ORDER BY</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="proj-footer">
+  <p>Benard Mwinzi · Data Analyst · Nairobi, Kenya</p>
+  <div style="display:flex;gap:24px;">
+    <a href="index.html">← Back to portfolio</a>
+    <a href="https://github.com/BenaData/MySQL-Data-Cleaning-and-Analysis-Series" target="_blank">GitHub ↗</a>
+  </div>
+</div>
+
+<script>
+const obs = new IntersectionObserver(els => els.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }), { threshold: 0.06 });
+document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+
+Chart.defaults.font.family = "'Outfit', sans-serif";
+Chart.defaults.color = '#4a6278';
+const grid = 'rgba(220,230,240,0.6)';
+const tip = { backgroundColor: '#0d1b2e', titleColor: '#fff', bodyColor: '#9fb3c8', padding: 12 };
+
+// Chart 1: City Prices — real data from notebook
+new Chart(document.getElementById('chart1'), {
+  type: 'bar',
+  data: {
+    labels: ['NASHVILLE','BRENTWOOD','GOODLETTSVILLE','NOLENSVILLE','ANTIOCH','MOUNT JULIET','HERMITAGE','OLD HICKORY','WHITES CREEK'],
+    datasets: [
+      { label: 'Avg Sale Price (USD)', data: [366292, 312258, 289707, 287144, 252227, 243095, 200018, 191083, 168434], backgroundColor: 'rgba(10,126,140,0.75)', borderColor: '#0a7e8c', borderWidth: 1 },
+      { label: 'Transactions', data: [40275,1696,734,494,6316,183,3133,1415,97], backgroundColor: 'rgba(201,151,58,0.6)', yAxisID: 'y2', borderWidth: 0 }
+    ]
+  },
+  options: {
+    responsive: true, indexAxis: 'y', interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 18 } }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid }, title: { display: true, text: 'Avg Sale Price (USD)' } },
+      y: { grid: { color: grid } },
+      y2: { position: 'right', grid: { display: false }, title: { display: true, text: 'Transactions' } }
+    }
+  }
+});
+
+// Chart 2: Monthly transactions & avg price — real data
+new Chart(document.getElementById('chart2'), {
+  type: 'bar',
+  data: {
+    labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    datasets: [
+      { label: 'Transactions', data: [3227,2778,4474,5223,5932,6592,5469,5620,5451,4819,3113,3779], backgroundColor: 'rgba(10,126,140,0.7)', borderWidth: 0 },
+      { label: 'Avg Price (USD)', data: [667910,246079,266192,300485,297648,300111,321420,320340,306834,275579,335451,280000], borderColor: '#c9973a', backgroundColor: 'transparent', type: 'line', tension: 0.4, borderWidth: 2.5, pointRadius: 4, yAxisID: 'y2' }
+    ]
+  },
+  options: {
+    responsive: true, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 18 } }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid } },
+      y: { grid: { color: grid }, title: { display: true, text: 'Transactions' } },
+      y2: { position: 'right', grid: { display: false }, title: { display: true, text: 'Avg Price (USD)' } }
+    }
+  }
+});
+
+// Chart 3: Property Type — real data
+new Chart(document.getElementById('chart3'), {
+  type: 'bar',
+  data: {
+    labels: ['Single Family','Quadplex','Res Combo','Duplex','Vacant Res','Triplex','Zero Lot'],
+    datasets: [{
+      label: 'Avg Sale Price (USD)',
+      data: [284265, 297424, 329529, 227636, 217922, 220512, 118828],
+      backgroundColor: ['rgba(10,126,140,0.8)','rgba(10,126,140,0.7)','rgba(26,122,74,0.75)','rgba(10,126,140,0.65)','rgba(10,126,140,0.55)','rgba(10,126,140,0.55)','rgba(10,126,140,0.45)']
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid } },
+      y: { grid: { color: grid }, title: { display: true, text: 'Avg Sale Price (USD)' }, min: 80000 }
+    }
+  }
+});
+</script>
+</body>
+</html>

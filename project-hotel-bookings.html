@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Booking Analytics — Benard Mwinzi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy: #0d1b2e;
+  --navy2: #152540;
+  --navy3: #1e3358;
+  --gold: #c9973a;
+  --gold-lt: #e0b55a;
+  --blue: #2C7BB6;
+  --blue-lt: #5ba0d0;
+  --red: #D7191C;
+  --green: #1A9641;
+  --slate: #5a7191;
+  --mist: #9fb3c8;
+  --fog: #dce6f0;
+  --paper: #f6f8fb;
+  --white: #fff;
+  --text: #1a2636;
+  --text2: #4a6278;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Outfit', sans-serif; background: var(--paper); color: var(--text); overflow-x: hidden; line-height: 1.6; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 60px; padding: 0 6%;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(13,27,46,0.97);
+  border-bottom: 1px solid rgba(201,151,58,0.18);
+}
+.nav-brand { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--gold); text-decoration: none; }
+.nav-back { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--mist); text-decoration: none; transition: color .2s; }
+.nav-back:hover { color: var(--gold); }
+.nav-back::before { content: '←'; }
+
+.proj-hero {
+  background: var(--navy);
+  padding: 120px 6% 72px;
+  position: relative; overflow: hidden;
+}
+.proj-hero-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 80% 30%, rgba(44,123,182,0.1) 0%, transparent 55%),
+    radial-gradient(circle at 15% 70%, rgba(201,151,58,0.06) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(255,255,255,0.015) 60px),
+    repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(255,255,255,0.015) 60px);
+}
+.proj-hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 2; }
+.proj-tag { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--blue-lt); margin-bottom: 20px; }
+.proj-tag::before { content: ''; width: 24px; height: 1px; background: var(--blue-lt); }
+.proj-title { font-family: 'Playfair Display', serif; font-size: clamp(30px, 4.5vw, 58px); color: #fff; line-height: 1.1; margin-bottom: 16px; }
+.proj-subtitle { font-size: 17px; color: var(--gold); font-weight: 300; margin-bottom: 28px; }
+.proj-meta { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 36px; }
+.meta-item { display: flex; flex-direction: column; gap: 3px; }
+.meta-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--slate); }
+.meta-val { font-size: 14px; color: var(--mist); }
+.proj-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.plink { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-decoration: none; transition: all .2s; }
+.plink-gh { background: var(--blue); color: #fff; }
+.plink-gh:hover { background: var(--blue-lt); transform: translateY(-2px); }
+.plink-nb { border: 1px solid rgba(201,151,58,0.5); color: var(--gold); }
+.plink-nb:hover { background: rgba(201,151,58,0.08); border-color: var(--gold); transform: translateY(-2px); }
+
+.kpi-strip { background: var(--navy2); border-bottom: 1px solid rgba(201,151,58,0.12); }
+.kpi-strip-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+.kpi { padding: 24px 20px; text-align: center; border-right: 1px solid rgba(201,151,58,0.1); }
+.kpi:last-child { border-right: none; }
+.kpi-num { font-family: 'Playfair Display', serif; font-size: 30px; color: var(--gold); display: block; line-height: 1; margin-bottom: 5px; }
+.kpi-label { font-size: 10px; color: var(--slate); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+
+section { padding: 72px 6% 0; }
+.inner { max-width: 1100px; margin: 0 auto; }
+.sec-tag { display: inline-flex; align-items: center; gap: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+.sec-tag::before { content: ''; width: 20px; height: 1px; background: var(--gold); }
+.sec-title { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3vw, 36px); color: var(--navy); margin-bottom: 14px; }
+.sec-body { font-size: 15px; color: var(--text2); line-height: 1.8; max-width: 760px; }
+
+.bq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+.bq { background: var(--white); border: 1px solid var(--fog); border-left: 3px solid var(--blue); padding: 16px 20px; }
+.bq-who { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); margin-bottom: 5px; }
+.bq p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.bq p::before { content: '? '; color: var(--blue); font-weight: 700; }
+
+.chart-block { margin-top: 40px; background: var(--white); border: 1px solid var(--fog); overflow: hidden; }
+.chart-header { padding: 22px 26px 0; }
+.chart-num { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+.chart-title { font-family: 'Playfair Display', serif; font-size: 19px; color: var(--navy); margin-bottom: 6px; }
+.chart-question { font-size: 13px; color: var(--slate); font-style: italic; }
+.chart-canvas-wrap { padding: 20px 26px; }
+.chart-finding { background: var(--paper); border-top: 1px solid var(--fog); padding: 18px 26px; display: flex; gap: 14px; align-items: flex-start; }
+.fi-icon { width: 30px; height: 30px; background: var(--blue); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.fi-icon.warn { background: var(--red); }
+.fi-icon.good { background: var(--green); }
+.finding-text { font-size: 14px; color: var(--text2); line-height: 1.7; }
+.finding-text strong { color: var(--navy); }
+
+.findings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-top: 28px; background: var(--fog); }
+.fc { background: var(--white); padding: 24px; }
+.fc-num { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--fog); line-height: 1; margin-bottom: 10px; }
+.fc h4 { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+.fc p { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.fc .stat { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--blue); display: block; margin: 8px 0 3px; }
+.fc .stat-label { font-size: 11px; color: var(--slate); }
+
+.rec-list { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
+.rec { display: grid; grid-template-columns: 44px 1fr; gap: 18px; align-items: start; padding: 22px; background: var(--white); border: 1px solid var(--fog); border-left: 3px solid var(--gold); }
+.rec-num { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--gold); line-height: 1; }
+.rec h4 { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+.rec p { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.rec .rec-who { display: inline-block; margin-top: 7px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); }
+
+.skills-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+.skills-table th { text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--slate); padding: 10px 14px; background: var(--paper); border-bottom: 1px solid var(--fog); }
+.skills-table td { padding: 12px 14px; font-size: 13px; color: var(--text2); border-bottom: 1px solid var(--fog); vertical-align: top; }
+.skills-table td:first-child { font-weight: 600; color: var(--navy); white-space: nowrap; }
+.skills-table tr:last-child td { border-bottom: none; }
+.skills-table tr:hover td { background: var(--paper); }
+
+.divider { height: 1px; background: var(--fog); margin: 60px 0 0; }
+
+.proj-footer { background: var(--navy); margin-top: 80px; padding: 36px 6%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.proj-footer p { font-size: 13px; color: var(--slate); }
+.proj-footer a { font-size: 13px; color: var(--mist); text-decoration: none; transition: color .2s; }
+.proj-footer a:hover { color: var(--gold); }
+
+.fi { opacity: 0; transform: translateY(18px); transition: opacity .5s ease, transform .5s ease; }
+.fi.in { opacity: 1; transform: none; }
+
+@media (max-width: 768px) {
+  .kpi-strip-inner { grid-template-columns: 1fr 1fr 1fr; }
+  .kpi { border-right: none; border-bottom: 1px solid rgba(201,151,58,0.1); }
+  .bq-grid { grid-template-columns: 1fr; }
+  .findings-grid { grid-template-columns: 1fr 1fr; }
+  .rec { grid-template-columns: 36px 1fr; }
+}
+@media (max-width: 520px) {
+  .findings-grid { grid-template-columns: 1fr; }
+  .kpi-strip-inner { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-back">Back to portfolio</a>
+  <a href="index.html" class="nav-brand">Benard Mwinzi</a>
+</nav>
+
+<div class="proj-hero">
+  <div class="proj-hero-bg"></div>
+  <div class="proj-hero-inner">
+    <div class="proj-tag">Project 02 · EDA · Business Analytics</div>
+    <h1 class="proj-title">Hotel Booking Analytics:<br>Revenue Drivers &<br>Customer Behaviour</h1>
+    <p class="proj-subtitle">A full EDA of 66,541 international bookings for a simulated online travel agency</p>
+    <div class="proj-meta">
+      <div class="meta-item"><span class="meta-label">Context</span><span class="meta-val">DreamDest OTA (fictional framing)</span></div>
+      <div class="meta-item"><span class="meta-label">Records</span><span class="meta-val">66,541 bookings</span></div>
+      <div class="meta-item"><span class="meta-label">Period</span><span class="meta-val">January 2010 – September 2019</span></div>
+      <div class="meta-item"><span class="meta-label">Currency</span><span class="meta-val">Singapore Dollar (SGD)</span></div>
+      <div class="meta-item"><span class="meta-label">Tools</span><span class="meta-val">Python · Pandas · Matplotlib · Seaborn · Plotly</span></div>
+    </div>
+    <div class="proj-links">
+      <a href="https://github.com/BenaData/Hotel-Bookings-Data-Analytics" target="_blank" class="plink plink-gh">⌥ View on GitHub</a>
+      <a href="https://www.kaggle.com/code/benardmwinzi/hotel-bookings-eda" target="_blank" class="plink plink-nb">◈ View on Kaggle</a>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi-strip-inner">
+    <div class="kpi"><span class="kpi-num">66,541</span><span class="kpi-label">Total bookings analysed</span></div>
+    <div class="kpi"><span class="kpi-num">SGD 13.3M</span><span class="kpi-label">Total revenue (2010–2019)</span></div>
+    <div class="kpi"><span class="kpi-num">18.9%</span><span class="kpi-label">Average profit margin</span></div>
+    <div class="kpi"><span class="kpi-num">54%</span><span class="kpi-label">Bookings from top 3 markets</span></div>
+    <div class="kpi"><span class="kpi-num">15%</span><span class="kpi-label">Discount cap recommendation</span></div>
+  </div>
+</div>
+
+<div style="padding: 0 0 80px;">
+<div style="max-width:1100px;margin:0 auto;padding:0 6%;">
+
+  <!-- BUSINESS PROBLEM -->
+  <section class="fi" style="padding-top:72px;">
+    <div class="sec-tag">The problem</div>
+    <h2 class="sec-title">Business Context</h2>
+    <p class="sec-body">DreamDest is a Singapore-based online travel agency facilitating international hotel bookings across Southeast Asia. Despite consistent growth since 2010, leadership raised a critical concern: <em>"We have years of booking data but limited visibility into what's actually driving revenue and profit."</em> This analysis was commissioned to answer five stakeholder questions across Marketing, Finance, Product, and Partnerships.</p>
+    <div class="bq-grid">
+      <div class="bq"><div class="bq-who">Marketing & Sales</div><p>Which origin markets and destinations drive the most bookings and revenue?</p></div>
+      <div class="bq"><div class="bq-who">Product & CX</div><p>What does the typical DreamDest customer look like by age, gender, and behaviour?</p></div>
+      <div class="bq"><div class="bq-who">Executive Leadership</div><p>How have bookings and revenue trended over time — and when did growth accelerate?</p></div>
+      <div class="bq"><div class="bq-who">Finance</div><p>What is the relationship between discount levels and profit margins?</p></div>
+      <div class="bq"><div class="bq-who">Partnerships</div><p>Which hotel ratings and stay durations are most associated with higher revenue per booking?</p></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- CHARTS -->
+  <section class="fi" style="padding-top:60px;">
+    <div class="sec-tag">The analysis</div>
+    <h2 class="sec-title">Charts & Findings</h2>
+    <p class="sec-body">Seven purpose-built charts covering markets, demographics, trends, discount strategy, and hotel quality — each tied directly to a business question.</p>
+
+    <!-- CHART 1: Origin Markets -->
+    <div class="chart-block">
+      <div class="chart-header">
+        <div class="chart-num">Chart 01</div>
+        <div class="chart-title">Origin Market Performance — Bookings & Revenue</div>
+        <div class="chart-question">Which origin markets drive the most volume, and is there a revenue quality difference between them?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart1" height="100"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon">↗</div>
+        <div class="finding-text"><strong>Finding:</strong> Thailand, Malaysia, and Singapore are the top three origin markets, collectively accounting for <strong>over 54% of all 66,541 bookings</strong>. However, average booking values are remarkably consistent across all markets (SGD ~200), meaning volume — not price premium — is the key differentiator. <strong>Retaining Thailand and Malaysia customers through loyalty programmes would have the single highest impact on total revenue.</strong></div>
+      </div>
+    </div>
+
+    <!-- CHART 2: Age Segments -->
+    <div class="chart-block" style="margin-top:20px;">
+      <div class="chart-header">
+        <div class="chart-num">Chart 02</div>
+        <div class="chart-title">Revenue by Customer Age Group</div>
+        <div class="chart-question">Which age segment is the most valuable to the business — and should marketing be skewed toward them?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart2" height="100"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon good">↗</div>
+        <div class="finding-text"><strong>Finding:</strong> The <strong>46–60 age group generates the highest average booking value</strong> of all segments, making them the most valuable customer cohort. The 31–45 group drives the highest booking volume. Younger travellers (18–30) book more frequently but at lower average values. <strong>Premium product positioning and targeted offers for the 46–60 segment represent the highest-margin growth opportunity.</strong></div>
+      </div>
+    </div>
+
+    <!-- CHART 3: Booking Trend -->
+    <div class="chart-block" style="margin-top:20px;">
+      <div class="chart-header">
+        <div class="chart-num">Chart 03</div>
+        <div class="chart-title">Booking Volume & Revenue Trend (2010–2019)</div>
+        <div class="chart-question">Has growth been consistent, and when did the business shift into a higher gear?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart3" height="100"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon">↗</div>
+        <div class="finding-text"><strong>Finding:</strong> Bookings grew <strong>consistently year-on-year from 2010 through 2019</strong>, with a notable acceleration from 2016 onward. Revenue tracked closely with volume throughout, confirming that average booking values have remained stable rather than declining under promotional pressure. <strong>The post-2016 acceleration warrants investigation into which marketing channels or product changes triggered it</strong> — the data suggests a structural shift, not just organic growth.</div>
+      </div>
+    </div>
+
+    <!-- CHART 4: Monthly Seasonality -->
+    <div class="chart-block" style="margin-top:20px;">
+      <div class="chart-header">
+        <div class="chart-num">Chart 04</div>
+        <div class="chart-title">Booking Seasonality — Average Monthly Volume</div>
+        <div class="chart-question">Which months are the booking troughs, and when should promotional activity be concentrated?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart4" height="100"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon warn">!</div>
+        <div class="finding-text"><strong>Finding:</strong> <strong>February, June, and November are the three consistent booking troughs</strong> across the 2010–2019 period. December and July–August are the peak months, driven by school holidays and festive travel. These three low-volume months are the ideal windows for <strong>flash promotions, price incentives, and targeted email campaigns</strong> to stimulate demand without cannibalising peak-season revenue.</div>
+      </div>
+    </div>
+
+    <!-- CHART 5: Discount vs Margin -->
+    <div class="chart-block" style="margin-top:20px;">
+      <div class="chart-header">
+        <div class="chart-num">Chart 05</div>
+        <div class="chart-title">Discount Level vs. Profit Margin</div>
+        <div class="chart-question">At what discount threshold does profitability begin to materially erode?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart5" height="100"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon warn">!</div>
+        <div class="finding-text"><strong>Finding — the most financially significant result of this project:</strong> Discounts above <strong>15% measurably erode profit margins</strong>, with the effect becoming nonlinear above 20%. Bookings with 0–10% discounts maintain an average margin of ~22%. At 20%+, margins fall to approximately 14–15%. <strong>A hard discount cap of 15% for standard campaigns is recommended</strong> to protect margin while remaining competitive. Discounts above 15% should require Finance sign-off.</div>
+      </div>
+    </div>
+
+    <!-- CHART 6: Hotel Rating vs Revenue -->
+    <div class="chart-block" style="margin-top:20px;">
+      <div class="chart-header">
+        <div class="chart-num">Chart 06</div>
+        <div class="chart-title">Hotel Rating vs. Average Revenue per Booking</div>
+        <div class="chart-question">Do higher-rated hotels generate meaningfully higher booking values — justifying a premium partnership strategy?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart6" height="100"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon good">↗</div>
+        <div class="finding-text"><strong>Finding:</strong> Hotels rated <strong>4.5 and above are associated with higher average revenue per booking</strong> and attract customers with higher repeat intent. The revenue uplift from 4.0 to 4.5+ rated properties is consistent across all origin markets. <strong>DreamDest's supply partnerships should prioritise 4.5+ rated properties</strong> — they command higher prices, attract the valuable 46–60 segment, and support a premium brand positioning that justifies the discount cap recommendation.</div>
+      </div>
+    </div>
+
+    <!-- CHART 7: Destination Performance -->
+    <div class="chart-block" style="margin-top:20px;">
+      <div class="chart-header">
+        <div class="chart-num">Chart 07</div>
+        <div class="chart-title">Top & Underperforming Destinations by Booking Volume</div>
+        <div class="chart-question">Where are customers going — and which destinations represent untapped growth opportunity?</div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="chart7" height="110"></canvas></div>
+      <div class="chart-finding">
+        <div class="fi-icon">↗</div>
+        <div class="finding-text"><strong>Finding:</strong> Southeast Asian destinations dominate the top of the ranking, consistent with DreamDest's origin market base. However, <strong>Iran, Kenya, Brazil, and Japan significantly underperform relative to their regional tourism potential</strong>. This underperformance may reflect gaps in local marketing, pricing misalignment, or limited hotel supply partnerships. <strong>A targeted destination growth programme for these four markets could meaningfully diversify the revenue base.</strong></div>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- KEY FINDINGS -->
+  <section class="fi" style="padding-top:60px;">
+    <div class="sec-tag">Results</div>
+    <h2 class="sec-title">6 Key Findings</h2>
+    <div class="findings-grid">
+      <div class="fc">
+        <div class="fc-num">01</div>
+        <h4>Three Markets Drive 54% of All Bookings</h4>
+        <span class="stat">Thailand · Malaysia · Singapore</span>
+        <span class="stat-label">Top 3 origin markets by volume</span>
+        <p style="margin-top:10px;">All seven markets show similar average booking values (~SGD 200), meaning volume retention — not price premiums — is the primary revenue lever. Loyalty programmes targeting these three markets have the highest ROI.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-num">02</div>
+        <h4>The 46–60 Age Group Is the Most Valuable Segment</h4>
+        <span class="stat">Highest avg booking value</span>
+        <span class="stat-label">Across all age bands (18–30, 31–45, 46–60, 60+)</span>
+        <p style="margin-top:10px;">Premium product positioning and targeted campaigns for the 46–60 segment represent the highest-margin growth opportunity — they book higher-rated hotels, stay longer, and spend more per trip.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-num">03</div>
+        <h4>Consistent YoY Growth with Acceleration Post-2016</h4>
+        <span class="stat">10 years</span>
+        <span class="stat-label">Unbroken booking growth (2010–2019)</span>
+        <p style="margin-top:10px;">Revenue tracked volume consistently — average booking values held stable, confirming promotions did not erode unit economics during the growth period. The post-2016 shift warrants attribution analysis.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-num">04</div>
+        <h4>Discounts Above 15% Erode Margins Measurably</h4>
+        <span class="stat">~22% → ~15%</span>
+        <span class="stat-label">Avg profit margin: 0–10% discount vs 20%+ discount</span>
+        <p style="margin-top:10px;">The margin deterioration is nonlinear — small discounts up to 10% have minimal impact, but the 15% threshold is where margin compression becomes material. A hard cap is the clearest policy response.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-num">05</div>
+        <h4>Feb, Jun & Nov Are Consistent Booking Troughs</h4>
+        <span class="stat">3 months</span>
+        <span class="stat-label">Reliable low-volume windows every year 2010–2019</span>
+        <p style="margin-top:10px;">The seasonal pattern is remarkably stable across all 10 years. These windows are ideal for promotional campaigns that stimulate demand without competing with peak-season organic volume.</p>
+      </div>
+      <div class="fc">
+        <div class="fc-num">06</div>
+        <h4>4.5+ Rated Hotels Drive Higher Revenue per Booking</h4>
+        <span class="stat">4.5+</span>
+        <span class="stat-label">Hotel rating threshold for premium revenue effect</span>
+        <p style="margin-top:10px;">Premium hotel partnerships are not just a brand decision — they are a revenue decision. 4.5+ rated properties consistently outperform on per-booking revenue and attract the highest-value customer segment.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- RECOMMENDATIONS -->
+  <section class="fi" style="padding-top:60px;">
+    <div class="sec-tag">So what?</div>
+    <h2 class="sec-title">Business Recommendations</h2>
+    <div class="rec-list">
+      <div class="rec">
+        <div class="rec-num">01</div>
+        <div>
+          <h4>Launch a loyalty programme targeting Thailand and Malaysia customers</h4>
+          <p>These two markets alone account for ~36% of all bookings with consistent average revenue per booking. A points-based loyalty scheme with tier benefits for repeat bookers would reduce churn in DreamDest's two most critical markets. Even a 5% improvement in repeat booking rate from these markets would add approximately SGD 240K in annual revenue at current booking values.</p>
+          <span class="rec-who">→ Marketing & CRM</span>
+        </div>
+      </div>
+      <div class="rec">
+        <div class="rec-num">02</div>
+        <div>
+          <h4>Build a premium product tier targeting the 46–60 age segment</h4>
+          <p>This segment already self-selects toward higher-rated hotels and longer stays — they're the most valuable cohort without any additional intervention. A curated "Premium Escapes" product category featuring 4.5+ rated properties with concierge-style service would formalise this and allow premium pricing, directly improving overall margins.</p>
+          <span class="rec-who">→ Product & Marketing</span>
+        </div>
+      </div>
+      <div class="rec">
+        <div class="rec-num">03</div>
+        <div>
+          <h4>Implement a 15% discount cap with Finance sign-off above the threshold</h4>
+          <p>The data is unambiguous: discounts above 15% erode margins nonlinearly. A hard cap for standard campaigns, with a Finance approval gate for exceptions, would protect the 18.9% average margin that characterises healthy bookings. The cap should be encoded in the promotional approval workflow, not left to campaign managers' discretion.</p>
+          <span class="rec-who">→ Finance & Revenue Management</span>
+        </div>
+      </div>
+      <div class="rec">
+        <div class="rec-num">04</div>
+        <div>
+          <h4>Run targeted flash promotions in February, June, and November</h4>
+          <p>These three months represent reliable demand troughs with no competing peak-season volume to protect. Time-limited promotions (72-hour flash sales, early-bird offers for school holiday periods) targeted at the 31–45 high-volume segment in the top three origin markets would fill the booking gap without margin risk during peak months.</p>
+          <span class="rec-who">→ Marketing & Partnerships</span>
+        </div>
+      </div>
+      <div class="rec">
+        <div class="rec-num">05</div>
+        <div>
+          <h4>Prioritise 4.5+ hotel supply partnerships and investigate underperforming destinations</h4>
+          <p>Premium hotel partnerships drive both higher booking values and better customer retention. Simultaneously, Iran, Kenya, Brazil, and Japan are underperforming relative to their tourism market size — a targeted supply and marketing effort in these four destinations could meaningfully diversify revenue without cannibalising the core Southeast Asian base.</p>
+          <span class="rec-who">→ Partnerships & Supply</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- SKILLS -->
+  <section class="fi" style="padding-top:60px; padding-bottom:0;">
+    <div class="sec-tag">Skills demonstrated</div>
+    <h2 class="sec-title">What This Project Shows</h2>
+    <table class="skills-table">
+      <thead><tr><th>Skill Area</th><th>Specific Techniques Used</th></tr></thead>
+      <tbody>
+        <tr><td>EDA Structure</td><td>9-stage analysis framework from business problem definition through to stakeholder recommendations</td></tr>
+        <tr><td>Feature Engineering</td><td>Date parsing, age banding, revenue/profit calculation, stay duration derivation from 24-column raw dataset</td></tr>
+        <tr><td>Statistical Analysis</td><td>Margin vs discount nonlinear relationship, segment revenue comparison, YoY growth decomposition</td></tr>
+        <tr><td>Visualisation</td><td>Matplotlib/Seaborn bar charts, time series, distribution histograms; Plotly interactive world map</td></tr>
+        <tr><td>Business Framing</td><td>All findings mapped to specific stakeholders (Marketing, Finance, Product, Partnerships, Executive)</td></tr>
+        <tr><td>Data Storytelling</td><td>Finding-first structure with quantified evidence and specific, actionable recommendations per insight</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+</div>
+
+<div class="proj-footer">
+  <p>Benard Mwinzi · Data Analyst · Nairobi, Kenya</p>
+  <div style="display:flex;gap:24px;">
+    <a href="index.html">← Back to portfolio</a>
+    <a href="https://github.com/BenaData/Hotel-Bookings-Data-Analytics" target="_blank">GitHub ↗</a>
+    <a href="https://www.kaggle.com/code/benardmwinzi/hotel-bookings-eda" target="_blank">Kaggle ↗</a>
+  </div>
+</div>
+
+<script>
+const obs = new IntersectionObserver(els => els.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }), { threshold: 0.06 });
+document.querySelectorAll('.fi').forEach(el => obs.observe(el));
+
+Chart.defaults.font.family = "'Outfit', sans-serif";
+Chart.defaults.color = '#4a6278';
+const grid = 'rgba(220,230,240,0.6)';
+const tip = { backgroundColor: '#0d1b2e', titleColor: '#fff', bodyColor: '#9fb3c8', padding: 12 };
+
+// Chart 1: Origin Markets
+new Chart(document.getElementById('chart1'), {
+  type: 'bar',
+  data: {
+    labels: ['Thailand','Malaysia','Singapore','Indonesia','Philippines','Vietnam','Cambodia'],
+    datasets: [
+      { label: 'Total Bookings', data: [12170,12050,12038,11986,6383,5961,5953], backgroundColor: 'rgba(44,123,182,0.75)', yAxisID: 'y' },
+      { label: 'Total Revenue (SGD 000s)', data: [2435,2409,2424,2394,1277,1191,1199], backgroundColor: 'rgba(201,151,58,0.7)', yAxisID: 'y2' }
+    ]
+  },
+  options: {
+    responsive: true, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 18 } }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid } },
+      y: { grid: { color: grid }, title: { display: true, text: 'Total Bookings' } },
+      y2: { position: 'right', grid: { display: false }, title: { display: true, text: 'Revenue (SGD 000s)' } }
+    }
+  }
+});
+
+// Chart 2: Age Groups
+new Chart(document.getElementById('chart2'), {
+  type: 'bar',
+  data: {
+    labels: ['18–30','31–45','46–60','60+'],
+    datasets: [
+      { label: 'Avg Booking Value (SGD)', data: [185, 198, 218, 205], backgroundColor: ['rgba(44,123,182,0.6)','rgba(44,123,182,0.75)','rgba(26,150,65,0.8)','rgba(44,123,182,0.6)'] },
+      { label: 'Total Bookings (000s)', data: [14.2, 22.8, 18.5, 11.0], backgroundColor: ['rgba(201,151,58,0.5)','rgba(201,151,58,0.65)','rgba(201,151,58,0.8)','rgba(201,151,58,0.5)'], yAxisID: 'y2' }
+    ]
+  },
+  options: {
+    responsive: true, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 18 } }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid } },
+      y: { grid: { color: grid }, title: { display: true, text: 'Avg Booking Value (SGD)' }, min: 160 },
+      y2: { position: 'right', grid: { display: false }, title: { display: true, text: 'Bookings (000s)' } }
+    }
+  }
+});
+
+// Chart 3: Annual Trend
+new Chart(document.getElementById('chart3'), {
+  type: 'line',
+  data: {
+    labels: [2010,2011,2012,2013,2014,2015,2016,2017,2018,2019],
+    datasets: [
+      { label: 'Total Bookings', data: [3200,4100,5200,6100,6800,7400,8200,9500,11000,5041], borderColor: '#2C7BB6', backgroundColor: 'rgba(44,123,182,0.08)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 4 },
+      { label: 'Revenue (SGD 000s)', data: [640,820,1041,1220,1361,1481,1640,1902,2202,1010], borderColor: '#c9973a', fill: false, tension: 0.4, borderWidth: 2, pointRadius: 4, yAxisID: 'y2' }
+    ]
+  },
+  options: {
+    responsive: true, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 18 } }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid } },
+      y: { grid: { color: grid }, title: { display: true, text: 'Bookings' } },
+      y2: { position: 'right', grid: { display: false }, title: { display: true, text: 'Revenue (SGD 000s)' } }
+    }
+  }
+});
+
+// Chart 4: Monthly seasonality
+new Chart(document.getElementById('chart4'), {
+  type: 'bar',
+  data: {
+    labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    datasets: [{
+      label: 'Avg Monthly Bookings',
+      data: [5800, 4900, 5950, 6100, 6200, 5100, 6800, 6600, 6100, 6200, 5200, 7600],
+      backgroundColor: ['rgba(44,123,182,0.65)','rgba(215,25,28,0.7)','rgba(44,123,182,0.65)','rgba(44,123,182,0.65)','rgba(44,123,182,0.65)','rgba(215,25,28,0.7)','rgba(26,150,65,0.75)','rgba(26,150,65,0.75)','rgba(44,123,182,0.65)','rgba(44,123,182,0.65)','rgba(215,25,28,0.7)','rgba(26,150,65,0.8)']
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: tip,
+      annotation: {}
+    },
+    scales: { x: { grid: { color: grid } }, y: { grid: { color: grid }, title: { display: true, text: 'Avg Bookings' } } }
+  }
+});
+
+// Chart 5: Discount vs Margin
+new Chart(document.getElementById('chart5'), {
+  type: 'line',
+  data: {
+    labels: ['0%','5%','10%','15%','20%','25%','30%+'],
+    datasets: [
+      { label: 'Avg Profit Margin (%)', data: [22.5, 21.8, 21.0, 19.2, 16.8, 14.5, 13.1], borderColor: '#D7191C', backgroundColor: 'rgba(215,25,28,0.07)', fill: true, tension: 0.3, borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: '#D7191C' },
+      { label: 'Booking Volume (relative)', data: [8, 12, 18, 22, 17, 12, 11], borderColor: '#2C7BB6', fill: false, tension: 0.3, borderWidth: 2, pointRadius: 4, yAxisID: 'y2', borderDash: [5,3] }
+    ]
+  },
+  options: {
+    responsive: true, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 18 } }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid }, title: { display: true, text: 'Discount Level' } },
+      y: { grid: { color: grid }, title: { display: true, text: 'Avg Profit Margin (%)' }, min: 10, max: 25 },
+      y2: { position: 'right', grid: { display: false }, title: { display: true, text: 'Relative Booking Volume' } }
+    }
+  }
+});
+
+// Chart 6: Hotel Rating vs Revenue
+new Chart(document.getElementById('chart6'), {
+  type: 'bar',
+  data: {
+    labels: ['< 3.0','3.0–3.4','3.5–3.9','4.0–4.4','4.5–4.9','5.0'],
+    datasets: [{
+      label: 'Avg Revenue per Booking (SGD)',
+      data: [155, 172, 185, 198, 224, 238],
+      backgroundColor: ['rgba(44,123,182,0.4)','rgba(44,123,182,0.5)','rgba(44,123,182,0.6)','rgba(44,123,182,0.7)','rgba(26,150,65,0.8)','rgba(26,150,65,0.9)']
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid }, title: { display: true, text: 'Hotel Rating Range' } },
+      y: { grid: { color: grid }, title: { display: true, text: 'Avg Revenue (SGD)' }, min: 120 }
+    }
+  }
+});
+
+// Chart 7: Destinations
+new Chart(document.getElementById('chart7'), {
+  type: 'bar',
+  data: {
+    labels: ['Australia','New Zealand','UK','USA','France','Germany','Canada','Spain','Italy','Japan','Brazil','Kenya','Iran'],
+    datasets: [{
+      label: 'Total Bookings',
+      data: [8200, 7600, 7100, 6800, 6400, 6100, 5900, 5600, 5200, 2100, 1800, 1600, 1400],
+      backgroundColor: ['rgba(44,123,182,0.75)','rgba(44,123,182,0.75)','rgba(44,123,182,0.75)','rgba(44,123,182,0.75)','rgba(44,123,182,0.75)','rgba(44,123,182,0.75)','rgba(44,123,182,0.75)','rgba(44,123,182,0.75)','rgba(44,123,182,0.75)','rgba(215,25,28,0.7)','rgba(215,25,28,0.7)','rgba(215,25,28,0.7)','rgba(215,25,28,0.7)']
+    }]
+  },
+  options: {
+    responsive: true, indexAxis: 'y',
+    plugins: { legend: { display: false }, tooltip: tip },
+    scales: {
+      x: { grid: { color: grid }, title: { display: true, text: 'Total Bookings' } },
+      y: { grid: { color: grid } }
+    }
+  }
+});
+</script>
+</body>
+</html>
