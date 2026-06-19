@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root {
   --navy:#0d1b2e; --navy2:#152540; --navy3:#1e3358;
@@ -557,7 +558,7 @@ footer p{font-size:12px;color:var(--slate);}
         <div class="fg"><label>Subject</label><input type="text" id="fsubject" placeholder="What's this about?"></div>
         <div class="fg"><label>Message</label><textarea id="fmessage" rows="5" placeholder="Tell me about your project or role..." required></textarea></div>
         <button type="submit" class="fsub">Send Email</button>
-        <p id="fstatus">Opening your email client…</p>
+        <p id="fstatus" style="display:none;"></p>
       </form>
     </div>
   </div>
@@ -594,22 +595,35 @@ document.querySelectorAll('.skill-cat').forEach(cat => {
   }, { threshold: 0.4 }).observe(cat);
 });
 // Form
+emailjs.init('c4jqJljKatxcSbzpl');
 function handleSubmit(e) {
   e.preventDefault();
-  const name = document.getElementById('fname').value;
-  const email = document.getElementById('femail').value;
-  const subject = document.getElementById('fsubject').value || 'Portfolio enquiry';
-  const msg = document.getElementById('fmessage').value;
-  const body = encodeURIComponent(
-    'Name: ' + name + '\nEmail: ' + email + '\n\n' + msg
-  );
-  const mailtoLink = 'mailto:benardmwinzi73@gmail.com'
-    + '?subject=' + encodeURIComponent(subject)
-    + '&body=' + body;
-  window.location.href = mailtoLink;
+  const btn = document.querySelector('.fsub');
   const status = document.getElementById('fstatus');
-  status.style.display = 'block';
-  status.textContent = 'Opening your email client…';
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const templateParams = {
+    from_name: document.getElementById('fname').value,
+    from_email: document.getElementById('femail').value,
+    subject: document.getElementById('fsubject').value || 'Portfolio enquiry',
+    message: document.getElementById('fmessage').value,
+  };
+  emailjs.send('service_7rnjeex', 'template_2n07pfj', templateParams)
+    .then(() => {
+      status.style.display = 'block';
+      status.style.color = '#4ec9b0';
+      status.textContent = '✓ Message sent! I\'ll get back to you soon.';
+      document.querySelector('.cform').reset();
+      btn.textContent = 'Send Email';
+      btn.disabled = false;
+      setTimeout(() => { status.style.display = 'none'; }, 6000);
+    }, () => {
+      status.style.display = 'block';
+      status.style.color = '#ff6b6b';
+      status.textContent = '✗ Something went wrong. Please email me directly at benardmwinzi73@gmail.com';
+      btn.textContent = 'Send Email';
+      btn.disabled = false;
+    });
 }
 </script>
 </body>
